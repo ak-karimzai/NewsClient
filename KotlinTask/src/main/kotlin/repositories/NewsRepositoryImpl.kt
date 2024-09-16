@@ -1,12 +1,14 @@
 package com.akkarimzai.repositories
 
 import com.akkarimzai.entities.News
+import com.akkarimzai.exceptions.BadRequestException
 import com.akkarimzai.exceptions.ServiceUnavailableException
 import com.akkarimzai.responses.NewsResponse
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.coroutines.TimeoutCancellationException
 import mu.KotlinLogging
 
@@ -41,6 +43,9 @@ class NewsRepositoryImpl(private val client: HttpClient) : NewsRepository {
             parameter("fields", "id,publication_date,title,place,description,site_url,favorites_count,comments_count")
         }
         logger.info { "request {${response.request}} response status: ${response.status}" }
+        if (response.status != HttpStatusCode.OK) {
+            throw BadRequestException("Request response status: ${response.status}")
+        }
         return response.body<NewsResponse>()
     }
 }

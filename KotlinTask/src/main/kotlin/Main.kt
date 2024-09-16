@@ -1,5 +1,7 @@
 package com.akkarimzai
 
+import com.akkarimzai.dsl.newsArticle
+import com.akkarimzai.exceptions.BadRequestException
 import com.akkarimzai.exceptions.NotFoundException
 import com.akkarimzai.exceptions.ServiceUnavailableException
 import com.akkarimzai.exceptions.ValidationException
@@ -61,7 +63,7 @@ suspend fun main(args: Array<String>) {
         runCommand(args, newsService)
     } catch (e: Exception) {
         when (e) {
-            is NotFoundException, is ServiceUnavailableException, is ValidationException -> {
+            is NotFoundException, is ServiceUnavailableException, is ValidationException, is BadRequestException -> {
                 logger.error { "Request processing error: ${e.message}" }
             }
             else -> {
@@ -97,5 +99,6 @@ suspend fun runCommand(args: Array<String>, newsService: NewsService) {
                 println(ratedNews)
             }
         }
+        else -> throw BadRequestException("Invalid command")
     }
 }
