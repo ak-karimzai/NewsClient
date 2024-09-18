@@ -16,10 +16,8 @@ class NewsRepositoryImpl(private val client: HttpClient) : NewsRepository {
     private val logger = KotlinLogging.logger {}
 
     override suspend fun list(size: Int, page: Int): List<News> {
-        val response: NewsResponse
-
-        try {
-            response = fetchNews(size, page)
+        val response: NewsResponse = try {
+            fetchNews(size, page)
         } catch (e: TimeoutCancellationException) {
             logger.debug { "request timeout: $e" }
             throw ServiceUnavailableException("request delay timeout")

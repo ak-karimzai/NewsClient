@@ -25,8 +25,6 @@ import mu.KotlinLogging
 import java.time.LocalDate
 import kotlin.system.exitProcess
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 suspend fun main(args: Array<String>) {
     if (args.isEmpty() || args.size < 2) {
         println("""
