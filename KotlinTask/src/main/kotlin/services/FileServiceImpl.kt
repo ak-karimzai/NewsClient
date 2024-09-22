@@ -31,9 +31,9 @@ class FileServiceImpl(private val csvMapper: CsvMapper) : FileService {
 
     private fun writeContents(path: String, contents: Collection<NewsDto>) {
         logger.debug("Preparing to write CSV contents to $path.")
-        FileWriter(path).use { writer ->
+        FileWriter(path).use {
             csvMapper.writer(csvMapper.schemaFor(NewsDto::class.java).withHeader())
-                .writeValues(writer)
+                .writeValues(it)
                 .writeAll(contents)
                 .close()
             logger.debug("CSV contents successfully written to $path.")

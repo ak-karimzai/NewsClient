@@ -20,7 +20,7 @@ class NewsService(private val newsRepository: NewsRepository, private val fileSe
         logger.info { "Listing news with count: $count" }
 
         return newsRepository.list(count, 1)
-            .map { src -> src.toDto() }
+            .map { it.toDto() }
             .toList().also {
                 logger.debug { "Returning ${it.size} news items." }
             }
@@ -54,7 +54,7 @@ class NewsService(private val newsRepository: NewsRepository, private val fileSe
         return result
             .sortedByDescending { it.rating }
             .take(count)
-            .map { src -> src.toDto() }
+            .map { it.toDto() }
             .toList().also {
                 logger.debug { "Returning ${it.size} top-rated news items." }
             }

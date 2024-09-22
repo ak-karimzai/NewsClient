@@ -1,8 +1,13 @@
 package com.akkarimzai
 
+import com.akkarimzai.dsl.NewsArticle
+import com.akkarimzai.dsl.newsArticle
+import com.akkarimzai.entities.News
+import com.akkarimzai.exceptions.BadRequestException
 import com.akkarimzai.exceptions.NotFoundException
 import com.akkarimzai.exceptions.ServiceUnavailableException
 import com.akkarimzai.exceptions.ValidationException
+import com.akkarimzai.models.NewsDto
 import com.akkarimzai.repositories.NewsRepository
 import com.akkarimzai.repositories.NewsRepositoryImpl
 import com.akkarimzai.services.FileService
@@ -20,8 +25,6 @@ import mu.KotlinLogging
 import java.time.LocalDate
 import kotlin.system.exitProcess
 
-//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
-// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 suspend fun main(args: Array<String>) {
     if (args.isEmpty() || args.size < 2) {
         println("""
@@ -61,7 +64,7 @@ suspend fun main(args: Array<String>) {
         runCommand(args, newsService)
     } catch (e: Exception) {
         when (e) {
-            is NotFoundException, is ServiceUnavailableException, is ValidationException -> {
+            is NotFoundException, is ServiceUnavailableException, is ValidationException, is BadRequestException -> {
                 logger.error { "Request processing error: ${e.message}" }
             }
             else -> {
@@ -82,7 +85,7 @@ suspend fun runCommand(args: Array<String>, newsService: NewsService) {
             if (args.size == 3) {
                 newsService.save(args[2], news)
             } else {
-                println(news)
+                prettyPrint(news)
             }
         }
         "list-rated" -> {
@@ -94,8 +97,24 @@ suspend fun runCommand(args: Array<String>, newsService: NewsService) {
                 val dstPath = args[4]
                 newsService.save(dstPath, ratedNews)
             } else {
-                println(ratedNews)
+                prettyPrint(ratedNews)
             }
         }
+        else -> throw BadRequestException("Invalid command")
+    }
+}
+
+fun prettyPrint(newsList: List<NewsDto>) {
+    newsList.forEach { news ->
+        val prettyNews = newsArticle {
+            id { + news.id.toString() }
+            title { + news.title }
+            description { + news.description }
+            place { + news.place }
+            siteUrl { + news.siteUrl }
+            favoritesCount { + news.favoritesCount.toString() }
+            commentsCount { + news.commentsCount.toString() }
+        }
+        println(prettyNews)
     }
 }
