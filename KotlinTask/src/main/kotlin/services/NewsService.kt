@@ -11,6 +11,21 @@ import java.time.LocalDate
 class NewsService(private val newsRepository: NewsRepository, private val fileService: FileService) {
     private val logger = KotlinLogging.logger {}
 
+    suspend fun list(count: Int, page: Int): List<NewsDto> {
+        if (count <= 0 || count > 100) {
+            logger.warn { "Invalid page size requested: $count" }
+            throw ValidationException("invalid page size: $count")
+        }
+
+        logger.info { "Listing news with count: $count" }
+
+        return newsRepository.list(count, page)
+            .map { it.toDto() }
+            .toList().also {
+                logger.debug { "Returning ${it.size} news items." }
+            }
+    }
+
     suspend fun list(count: Int): List<NewsDto> {
         if (count <= 0 || count > 100) {
             logger.warn { "Invalid page size requested: $count" }
