@@ -1,3 +1,3 @@
 package com.akkarimzai.exceptions
 
-class ValidationException(message: String) : Exception(message)
+class ValidationException(message: String) : BaseException(message)

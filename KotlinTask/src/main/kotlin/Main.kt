@@ -1,12 +1,8 @@
 package com.akkarimzai
 
-import com.akkarimzai.dsl.NewsArticle
+import com.akkarimzai.controllers.NewsController
 import com.akkarimzai.dsl.newsArticle
-import com.akkarimzai.entities.News
-import com.akkarimzai.exceptions.BadRequestException
-import com.akkarimzai.exceptions.NotFoundException
-import com.akkarimzai.exceptions.ServiceUnavailableException
-import com.akkarimzai.exceptions.ValidationException
+import com.akkarimzai.exceptions.*
 import com.akkarimzai.models.NewsDto
 import com.akkarimzai.repositories.NewsRepository
 import com.akkarimzai.repositories.NewsRepositoryImpl
@@ -24,6 +20,7 @@ import kotlinx.serialization.json.JsonNamingStrategy
 import mu.KotlinLogging
 import java.time.LocalDate
 import kotlin.system.exitProcess
+import kotlin.system.measureTimeMillis
 
 suspend fun main(args: Array<String>) {
     if (args.isEmpty() || args.size < 2) {
@@ -32,7 +29,8 @@ suspend fun main(args: Array<String>) {
                 1.list: 
                         args:
                             1. [count]
-                            2. [dest path] -> default stdout
+                            2. [workers]
+                            3. [dest path]
                 2.list-rated: 
                         args:
                             1. [count]
@@ -59,12 +57,13 @@ suspend fun main(args: Array<String>) {
     val repository: NewsRepository = NewsRepositoryImpl(client)
     val fileService: FileService = FileServiceImpl(csvMapper)
     val newsService: NewsService = NewsService(repository, fileService)
+    val newsController: NewsController = NewsController(fileService, newsService)
 
     try {
-        runCommand(args, newsService)
+        runCommand(args, newsService, newsController)
     } catch (e: Exception) {
         when (e) {
-            is NotFoundException, is ServiceUnavailableException, is ValidationException, is BadRequestException -> {
+            is BaseException -> {
                 logger.error { "Request processing error: ${e.message}" }
             }
             else -> {
@@ -77,16 +76,15 @@ suspend fun main(args: Array<String>) {
 
 }
 
-suspend fun runCommand(args: Array<String>, newsService: NewsService) {
+suspend fun runCommand(args: Array<String>, newsService: NewsService, newsController: NewsController) {
     when (args[0]) {
         "list" -> {
             val count: Int = args[1].toInt()
-            val news = newsService.list(count)
-            if (args.size == 3) {
-                newsService.save(args[2], news)
-            } else {
-                prettyPrint(news)
+            val workers: Int = args[2].toInt()
+            val spentTime = measureTimeMillis {
+                newsController.run(args[3], count, workers)
             }
+            println(spentTime)
         }
         "list-rated" -> {
             val count: Int = args[1].toInt()
